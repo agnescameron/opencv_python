@@ -8,7 +8,7 @@ from PIL import Image
 # cv2.imread function, in below method,
 # img = cv2.imread("test_image.png")
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
-fgbg.setShadowThreshold(0.7)
+fgbg.setShadowThreshold(0.2)
 print(fgbg.getShadowThreshold())
 cap = cv2.VideoCapture('../test_footage/samples/lumiere_years.mov')
 
@@ -29,18 +29,18 @@ for i in range(frame_count-4):
 	frame_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	# filt = cv2.bilateralFilter(mask_inv, 21, 200.0, 8.0)
 	filt = cv2.GaussianBlur(mask_inv,(21,21),0)
-	ret, thresh = cv2.threshold(filt, 150, 255, cv2.THRESH_BINARY)
+	ret, thresh = cv2.threshold(filt, 180, 255, cv2.THRESH_BINARY)
 	contours, hierarchy = cv2.findContours(cv2.bitwise_not(thresh), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-	cv2.drawContours(frame, contours, -1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
-	edges = cv2.Canny(thresh,100,200)
-	dil = cv2.dilate(edges,cv2.getStructuringElement( cv2.MORPH_ELLIPSE, (3, 3)))
+	cv2.drawContours(thresh, contours, -1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+	# edges = cv2.Canny(thresh,100,200)
+	# dil = cv2.dilate(contours,cv2.getStructuringElement( cv2.MORPH_ELLIPSE, (3, 3)))
 	m = np.zeros((frame_height+2, frame_width+2), np.uint8)
-	cv2.floodFill(dil, m, (0,0), 255);
+	cv2.floodFill(thresh, m, (0,0), 255);
 	# gauss = cv2.GaussianBlur(dil,(3,3),0)
 	# ret, thresh = cv2.threshold(gauss, 180, 255, cv2.THRESH_BINARY)
-	col_mask = cv2.bitwise_and(frame_grey, frame_grey, mask=cv2.bitwise_not(dil))
+	col_mask = cv2.bitwise_and(frame_grey, frame_grey, mask=cv2.bitwise_not(thresh))
 	bgr_mask = np.where(col_mask==0, 255, col_mask)
-	cv2.imshow('frame', frame)
+	cv2.imshow('frame', bgr_mask)
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
 		break
