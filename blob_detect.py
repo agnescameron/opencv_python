@@ -19,7 +19,18 @@ frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
 
 print(frame_width, frame_height)
-detector = cv2.SimpleBlobDetector_create()
+params = cv2.SimpleBlobDetector_Params()
+params.filterByInertia = True
+params.minInertiaRatio = 0.01
+params.maxInertiaRatio = 0.9
+params.filterByArea = True
+params.minArea = 500
+params.filterByCircularity = True
+params.minCircularity = 0.01
+params.filterByConvexity = True
+params.minConvexity = 0.01
+
+detector = cv2.SimpleBlobDetector_create(params)
 
 for i in range(frame_count-4):
 	# print('frame %d of %d', (i, frame_count))
@@ -27,10 +38,12 @@ for i in range(frame_count-4):
 	mask = fgbg.apply(frame)
 	mask_inv = cv2.bitwise_not(mask)
 	frame_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	# filt = cv2.bilateralFilter(mask_inv, 21, 200.0, 8.0)
-	filt = cv2.GaussianBlur(mask_inv,(21,21),0)
-	ret, thresh = cv2.threshold(filt, 180, 255, cv2.THRESH_BINARY)
-	contours, hierarchy = cv2.findContours(cv2.bitwise_not(thresh), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	filt = cv2.bilateralFilter(mask_inv, 21, 200.0, 8.0)
+	# filt = cv2.GaussianBlur(mask_inv,(5,5),0)
+	ret, thresh = cv2.threshold(filt, 150, 255, cv2.THRESH_BINARY)
+	# img_mop = cv2.morphologyEx(thresh, cv2.MORPH_ERODE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
+	# img_mop = cv2.morphologyEx(img_mop, cv2.MORPH_DILATE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))
+	contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 	cv2.drawContours(thresh, contours, -1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
 	# edges = cv2.Canny(thresh,100,200)
 	# dil = cv2.dilate(contours,cv2.getStructuringElement( cv2.MORPH_ELLIPSE, (3, 3)))
@@ -38,8 +51,15 @@ for i in range(frame_count-4):
 	cv2.floodFill(thresh, m, (0,0), 255);
 	# gauss = cv2.GaussianBlur(dil,(3,3),0)
 	# ret, thresh = cv2.threshold(gauss, 180, 255, cv2.THRESH_BINARY)
+
 	col_mask = cv2.bitwise_and(frame_grey, frame_grey, mask=cv2.bitwise_not(thresh))
 	bgr_mask = np.where(col_mask==0, 255, col_mask)
+
+
+	# keypoints = detector.detect(bgr_mask)
+	# im_with_keypoints = cv2.drawKeypoints(bgr_mask, keypoints, np.array([]), (0,0,255), 
+	# 	cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+	# cv2.addWeighted(bgr_mask, 0.65, frame_grey, 0.35, 0, image)
 	cv2.imshow('frame', bgr_mask)
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
