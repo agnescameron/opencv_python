@@ -18,24 +18,11 @@ frame_array = []
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
 
-print(frame_width, frame_height)
-params = cv2.SimpleBlobDetector_Params()
-params.filterByInertia = True
-params.minInertiaRatio = 0.01
-params.maxInertiaRatio = 0.9
-params.filterByArea = True
-params.minArea = 500
-params.filterByCircularity = True
-params.minCircularity = 0.01
-params.filterByConvexity = True
-params.minConvexity = 0.01
-
-detector = cv2.SimpleBlobDetector_create(params)
-
 for i in range(frame_count-4):
 	if i%50 == 0:
 		print("frame", i)
 		colour = [random.randint(100, 255), random.randint(100, 255), random.randint(100, 255)]
+
 	# print('frame %d of %d', (i, frame_count))
 	ret, frame = cap.read()
 	mask = fgbg.apply(frame)
@@ -68,7 +55,9 @@ for i in range(frame_count-4):
 	col_mask = cv2.bitwise_and(col_img, col_img, mask=thresh)
 	bgr_mask = np.where(col_mask < 10, 255, col_mask)
 
-	cv2.addWeighted(bgr_mask, 0.65, col_masked_frame, 0.35, 0, frame)
+	cv2.addWeighted(bgr_mask, 0.5, col_masked_frame, 0.5, 0, frame)
+
+	final_frame = frame
 
 	frame_array.append(frame)
 	cv2.imshow('frame', frame)
@@ -78,11 +67,11 @@ for i in range(frame_count-4):
 
 cap.release()
 
-print('writing...', fps, frame_width, frame_height, len(frame_array))
-out = cv2.VideoWriter('../test_footage/opencv/blobs.avi', cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
+print('writing...')
+out = cv2.VideoWriter('../test_footage/opencv/lumiere_walking.avi', cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 
 for i in range(len(frame_array)):
-	out.write(np.uint8(255*frame_array[i]))
+	out.write(frame_array[i])
 
 out.release()
 
