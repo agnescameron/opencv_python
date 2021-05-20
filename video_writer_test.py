@@ -34,7 +34,7 @@ for i in range(frame_count-4):
 cap.release()
 
 print('writing...')
-out = cv2.VideoWriter('../test_footage/opencv/cherry-blossom-2.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
+out = cv2.VideoWriter('../test_footage/opencv/check.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 for i in range(len(frame_array)):
 	out.write(frame_array[i])
 
