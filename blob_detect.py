@@ -3,7 +3,7 @@ import cv2
 import os
 import traceback
 import random
-
+import time
 
 shadow_threshold = 0.5
 filter_size = (9,9)
@@ -15,11 +15,15 @@ filter_threshold = 105
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
 fgbg.setShadowThreshold(shadow_threshold)
 print(fgbg.getShadowThreshold())
-cap = cv2.VideoCapture('../test_footage/samples/cici_flat_small.mov')
+cap = cv2.VideoCapture('../test_footage/samples/cici_flat_trim.mov')
 
 frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
-frame_array = []
+
+# separate films
+frame_array_1 = []
+frame_array_2 = []
+
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
 
@@ -51,6 +55,10 @@ for i in range(frame_count-4):
 
 	contours, hierarchy = cv2.findContours(cv2.bitwise_not(thresh), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	cv2.drawContours(thresh, contours, -1, color=(0, 255, 0), thickness=2, lineType=cv2.LINE_AA)
+	kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+	dilated = cv2.dilate(thresh, kernel)
+	thresh=cv2.erode(dilated,kernel)
+
 	cv2.floodFill(thresh, m, (0,0), 255)
 	frame_cont = frame
 
@@ -62,27 +70,42 @@ for i in range(frame_count-4):
 	#create colour mask
 	col_img = np.zeros(frame.shape, frame.dtype)
 	col_img[:,:] = (colour[0], colour[1], colour[2])
-	col_mask = cv2.bitwise_and(col_img, col_img, mask=thresh)
-	bgr_mask = np.where(col_mask < 10, 255, col_mask)
+	col_mask_1 = cv2.bitwise_and(col_img, col_img, mask=cv2.bitwise_not(thresh))
+	bgr_mask_1 = np.where(col_mask_1 < 10, 255, col_mask_1)
 
-	cv2.addWeighted(bgr_mask, 0.4, col_masked_frame, 0.6, 0, frame)
+	cv2.addWeighted(bgr_mask_1, 0.4, col_masked_frame, 0.6, 0, frame)
+	frame_array_1.append(frame)
 
-	final_frame = frame
+	col_mask_2 = cv2.bitwise_and(col_img, col_img, mask=thresh)
+	bgr_mask_2 = np.where(col_mask_2 < 10, 255, col_mask_2)
 
-	frame_array.append(frame_grey)
+	cv2.addWeighted(bgr_mask_2, 0.4, col_masked_frame, 0.6, 0, frame)
+	frame_array_2.append(frame)
+
 	cv2.imshow('frame', frame)
 	k = cv2.waitKey(30) & 0xff
 	if k == 27:
 		break
 
 cap.release()
+timestamp = time.time()
 
-print('writing...')
-out = cv2.VideoWriter('../test_footage/opencv/cici_flat_floodfill' + str(shadow_threshold) + str(filter_size) + str(filter_threshold) + '.avi', cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
+path = os.path.join('../test_footage/opencv/', str(timestamp))
+os.mkdir(path)
 
-for i in range(len(frame_array)):
-	out.write(frame_array[i])
+print('writing video 1...')
+out_1 = cv2.VideoWriter(os.path.join(path, 'video_1.avi'), cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 
-out.release()
+for i in range(len(frame_array_1)):
+	out_1.write(frame_array_1[i])
+
+out_1.release()
+
+print('video 1 written, writing video 2...')
+out_2 = cv2.VideoWriter(os.path.join(path, 'video_2.avi'), cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
+
+for i in range(len(frame_array_2)):
+	out_2.write(frame_array_2[i])
+
 
 cv2.destroyAllWindows()
