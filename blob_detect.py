@@ -217,6 +217,7 @@ def record_and_write():
 		stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
 
 	print("output is in", output_path)
+	GPIO.output(red_led, GPIO.HIGH)
 
 if __name__ == "__main__":
 	run_count = 0
@@ -226,3 +227,4 @@ if __name__ == "__main__":
 			record_and_write()
 			GPIO.output(green_led, GPIO.LOW)
 			run_count = run_count + 1
+			print("ready to record, run count is", run_count)
