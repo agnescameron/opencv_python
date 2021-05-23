@@ -73,19 +73,20 @@ for i in range(frame_count-4):
 	col_mask_1 = cv2.bitwise_and(col_img, col_img, mask=cv2.bitwise_not(thresh))
 	bgr_mask_1 = np.where(col_mask_1 < 10, 255, col_mask_1)
 
-	cv2.addWeighted(bgr_mask_1, 0.4, col_masked_frame, 0.6, 0, frame)
-	frame_array_1.append(frame)
+	frame_1 = cv2.addWeighted(bgr_mask_1, 0.4, col_masked_frame, 0.6, 0)
+	frame_array_1.append(frame_1)
+
+	cv2.imshow('frame', frame_1)
+	k = cv2.waitKey(30) & 0xff
+	if k == 27:
+		break
 
 	col_mask_2 = cv2.bitwise_and(col_img, col_img, mask=thresh)
 	bgr_mask_2 = np.where(col_mask_2 < 10, 255, col_mask_2)
 
-	cv2.addWeighted(bgr_mask_2, 0.4, col_masked_frame, 0.6, 0, frame)
-	frame_array_2.append(frame)
+	frame_2 = cv2.addWeighted(bgr_mask_2, 0.4, col_masked_frame, 0.6, 0)
+	frame_array_2.append(frame_2)
 
-	cv2.imshow('frame', frame)
-	k = cv2.waitKey(30) & 0xff
-	if k == 27:
-		break
 
 cap.release()
 timestamp = time.time()
@@ -107,5 +108,6 @@ out_2 = cv2.VideoWriter(os.path.join(path, 'video_2.avi'), cv2.VideoWriter_fourc
 for i in range(len(frame_array_2)):
 	out_2.write(frame_array_2[i])
 
+out_2.release()
 
 cv2.destroyAllWindows()
