@@ -1,9 +1,40 @@
 import numpy as np
 import cv2
-import os
-import traceback
 import random
+import picamera
+import subprocess
+import RPi.GPIO as GPIO
 import time
+import os
+
+camera = picamera.PiCamera()
+camera.resolution = (640, 480)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+print("waiting to record")
+while True:
+    time.sleep(0.1)
+    if GPIO.input(5) == GPIO.HIGH:
+        break
+
+os.remove('./temp/video.h264')
+os.remove('./temp/video.mp4')
+
+print("started recording")
+camera.start_recording('./temp/video.h264')
+
+while True:
+    camera.wait_recording(0.5)
+    if GPIO.input(5) == GPIO.HIGH:
+        break
+
+print("finished filming")
+camera.stop_recording()
+command = "MP4Box -add ./temp/video.h264 ./temp/video.mp4"
+subprocess.call([command], shell=True)
+
+print("written recording, now converting frames")
 
 shadow_threshold = 0.5
 filter_size = (9,9)
@@ -15,7 +46,8 @@ filter_threshold = 105
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
 fgbg.setShadowThreshold(shadow_threshold)
 print(fgbg.getShadowThreshold())
-cap = cv2.VideoCapture('../test_footage/samples/cici_flat_trim.mov')
+
+cap = cv2.VideoCapture('./temp/video.mp4')
 
 frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -29,7 +61,7 @@ frame_height = int(cap.get(4))
 
 for i in range(frame_count-4):
 	if i%50 == 0:
-		print("frame", i)
+		print("frame", i, "of", frame_count)
 		colour = [random.randint(100, 255), random.randint(100, 255), random.randint(100, 255)]
 
 	# print('frame %d of %d', (i, frame_count))
@@ -76,10 +108,6 @@ for i in range(frame_count-4):
 	frame_1 = cv2.addWeighted(bgr_mask_1, 0.4, col_masked_frame, 0.6, 0)
 	frame_array_1.append(frame_1)
 
-	cv2.imshow('frame', frame_1)
-	k = cv2.waitKey(30) & 0xff
-	if k == 27:
-		break
 
 	col_mask_2 = cv2.bitwise_and(col_img, col_img, mask=thresh)
 	bgr_mask_2 = np.where(col_mask_2 < 10, 255, col_mask_2)
@@ -91,7 +119,7 @@ for i in range(frame_count-4):
 cap.release()
 timestamp = time.time()
 
-path = os.path.join('../test_footage/opencv/', str(timestamp))
+path = os.path.join('./output/', str(timestamp))
 os.mkdir(path)
 
 print('writing video 1...')
@@ -109,5 +137,5 @@ for i in range(len(frame_array_2)):
 	out_2.write(frame_array_2[i])
 
 out_2.release()
-
+print('success!')
 cv2.destroyAllWindows()
