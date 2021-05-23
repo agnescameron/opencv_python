@@ -11,12 +11,14 @@ from glob import glob
 camera = picamera.PiCamera()
 camera.resolution = (640, 480)
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 #setup LEDs
-red_led = 6
-yellow_led = 13
-green_led = 19
+red_led = 13
+yellow_led = 6
+green_led = 5
+button_in = 19
+
+GPIO.setup(button_in, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 GPIO.setup(red_led, GPIO.OUT)
 GPIO.setup(yellow_led, GPIO.OUT)
@@ -57,7 +59,7 @@ def record_and_write():
 
 	while True:
 	    camera.wait_recording(0.05)
-	    if GPIO.input(5) == GPIO.HIGH:
+	    if GPIO.input(button_in) == GPIO.HIGH:
 	        break
 
 	print("finished filming")
@@ -223,8 +225,10 @@ if __name__ == "__main__":
 	run_count = 0
 	while True:
 		time.sleep(0.1)
-		if GPIO.input(5) == GPIO.HIGH:
+		if GPIO.input(button_in) == GPIO.HIGH:
 			record_and_write()
 			GPIO.output(green_led, GPIO.LOW)
 			run_count = run_count + 1
 			print("ready to record, run count is", run_count)
+
+	GPIO.cleanup()
