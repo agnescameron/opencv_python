@@ -23,9 +23,10 @@ os.remove('./temp/video.mp4')
 
 print("started recording")
 camera.start_recording('./temp/video.h264')
+camera.wait_recording(1)
 
 while True:
-    camera.wait_recording(0.5)
+    camera.wait_recording(0.05)
     if GPIO.input(5) == GPIO.HIGH:
         break
 
@@ -117,7 +118,7 @@ for i in range(frame_count-4):
 
 
 cap.release()
-timestamp = time.time()
+timestamp = round(time.time())
 
 path = os.path.join('./output/', str(timestamp))
 os.mkdir(path)
