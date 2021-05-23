@@ -13,11 +13,29 @@ camera.resolution = (640, 480)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+#setup LEDs
+red_led = 6
+yellow_led = 13
+green_led = 19
+
+GPIO.setup(red_led, GPIO.OUT)
+GPIO.setup(yellow_led, GPIO.OUT)
+GPIO.setup(green_led, GPIO.OUT)
+
+GPIO.output(red_led, GPIO.HIGH)
+GPIO.output(yellow_led, GPIO.HIGH)
+GPIO.output(green_led, GPIO.HIGH)
+
 print("waiting to record")
+GPIO.output(green_led, GPIO.LOW)
+
 while True:
     time.sleep(0.1)
     if GPIO.input(5) == GPIO.HIGH:
         break
+
+GPIO.output(green_led, GPIO.HIGH)
+GPIO.output(yellow_led, GPIO.LOW)
 
 try:
 	os.remove('./temp/video.h264')
@@ -50,6 +68,10 @@ while True:
         break
 
 print("finished filming")
+
+GPIO.output(yellow_led, GPIO.HIGH)
+GPIO.output(red_led, GPIO.LOW)
+
 camera.stop_recording()
 command = "MP4Box -add ./temp/video.h264 ./temp/video.mp4"
 subprocess.call([command], shell=True)
