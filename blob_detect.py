@@ -6,6 +6,7 @@ import subprocess
 import RPi.GPIO as GPIO
 import time
 import os
+from glob import glob
 
 camera = picamera.PiCamera()
 camera.resolution = (640, 480)
@@ -18,14 +19,26 @@ while True:
     if GPIO.input(5) == GPIO.HIGH:
         break
 
-os.remove('./temp/video.h264')
-os.remove('./temp/video.mp4')
-os.remove('./temp/*.avi')
+try:
+	os.remove('./temp/video.h264')
+except OSError:
+	pass
+
+try:
+	os.remove('./temp/video.mp4')
+except OSError:
+	pass
+
+open('./temp/vid_1.txt', 'w').close()
+open('./temp/vid_2.txt', 'w').close()
+
+for f in glob ('./temp/*.avi'):
+   os.remove(f)
 
 #make output path with recording timestamp
 timestamp = round(time.time())
-path = os.path.join('./output/', str(timestamp))
-os.mkdir(path)
+output_path = os.path.join('./output/', str(timestamp))
+os.mkdir(output_path)
 
 print("started recording")
 camera.start_recording('./temp/video.h264')
@@ -73,7 +86,6 @@ for i in range(frame_count-4):
 		print("frame", i, "of", frame_count)
 		colour = [random.randint(100, 255), random.randint(100, 255), random.randint(100, 255)]
 
-	# print('frame %d of %d', (i, frame_count))
 	ret, frame = cap.read()
 	mask_raw = fgbg.apply(frame)
 
@@ -87,8 +99,6 @@ for i in range(frame_count-4):
 	frame_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 	# filter the mask, then threshold
-	# cv2.fastNlMeansDenoising(mask_inv, mask_inv, 50, 7, 21)
-	# filt = cv2.bilateralFilter(mask_inv, 21, 200.0, 8.0)
 	filt = cv2.GaussianBlur(mask,filter_size,0)
 	ret, thresh = cv2.threshold(filt, filter_threshold, 255, cv2.THRESH_BINARY)
 
@@ -136,6 +146,9 @@ for i in range(frame_count-4):
 
 		out_1.release()
 
+		with open('./temp/vid_1.txt', 'a') as file:
+		        file.write(f"file 'video_1_{str(clip_count)}.avi'\n")
+
 		# write out clip in style 2
 		out_2 = cv2.VideoWriter(os.path.join('./temp/', 'video_2_' + str(clip_count) 
 			+ '.avi'),cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
@@ -144,6 +157,9 @@ for i in range(frame_count-4):
 			out_2.write(frame_array_2[j])
 
 		out_2.release()
+
+		with open('./temp/vid_2.txt', 'a') as file:
+		        file.write(f"file 'video_2_{str(clip_count)}.avi'\n")
 
 		frame_array_1 = []
 		frame_array_2 = []
@@ -157,6 +173,9 @@ out_1 = cv2.VideoWriter(os.path.join('./temp/', 'video_1_' + str(clip_count)
 for j in range(len(frame_array_1)):
 	out_1.write(frame_array_1[j])
 
+with open('./temp/vid_1.txt', 'a') as file:
+        file.write(f"file 'video_1_{str(clip_count)}.avi'")
+
 out_1.release()
 
 out_2 = cv2.VideoWriter(os.path.join('./temp/', 'video_2_' + str(clip_count) 
@@ -165,6 +184,22 @@ out_2 = cv2.VideoWriter(os.path.join('./temp/', 'video_2_' + str(clip_count)
 for j in range(len(frame_array_2)):
 	out_2.write(frame_array_2[j])
 
+with open('./temp/vid_2.txt', 'a') as file:
+        file.write(f"file 'video_2_{str(clip_count)}.avi'")
+
 out_2.release()
 
 cv2.destroyAllWindows()
+
+print('merging clips, cleaning up...')
+
+# join video 1
+subprocess.call(["ffmpeg -f concat -safe 0 -i ./temp/vid_1.txt -c copy " + os.path.join(output_path, "video_1.mp4")], 
+	stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+
+# join video 2
+subprocess.call(["ffmpeg -f concat -safe 0 -i ./temp/vid_2.txt -c copy " + os.path.join(output_path, "video_2.mp4")], 
+	stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+
+print("output is in", output_path)
+
