@@ -1,36 +1,13 @@
 import numpy as np
 import cv2
+import os
+import traceback
 import random
 import picamera
-import subprocess
-import RPi.GPIO as GPIO
-import time
 
-camera = picamera.PiCamera()
-camera.resolution = (640, 480)
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
-print("waiting to record")
-while True:
-    time.sleep(0.1)
-    if GPIO.input(5) == GPIO.HIGH:
-        break
-
-print("started recording")
-camera.start_recording('./temp/video.h264')
-
-while True:
-    camera.wait_recording(0.5)
-    if GPIO.input(5) == GPIO.HIGH:
-        break
-
-print("finished filming")
-camera.stop_recording()
-command = "MP4Box -add ./temp/video.h264 ./temp/video.mp4"
-subprocess.call([command], shell=True)
-
-print("written recording, now converting frames")
+with picamera.PiCamera() as camera:
+    camera.resolution = (640, 480)
+    camera.framerate = 20
 
 # To read image from disk, we use
 # cv2.imread function, in below method,
@@ -38,17 +15,17 @@ print("written recording, now converting frames")
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
 fgbg.setShadowThreshold(0.1)
 print(fgbg.getShadowThreshold())
-cap = cv2.VideoCapture('./temp/video.mp4')
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 10)
 
-frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-fps = int(cap.get(cv2.CAP_PROP_FPS))
+fps = 20
 frame_array = []
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
 
-for i in range(frame_count-4):
+for i in range(150):
 	if i%50 == 0:
-		print("frame", i, "of", frame_count)
+		print("frame", i)
 		colour = [random.randint(100, 255), random.randint(100, 255), random.randint(100, 255)]
 
 	# print('frame %d of %d', (i, frame_count))
@@ -95,12 +72,12 @@ for i in range(frame_count-4):
 
 cap.release()
 
-print('writing output')
-out = cv2.VideoWriter('./output/lumiere_walking.avi', cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
+print('writing...')
+out = cv2.VideoWriter('./output/studio_film.avi', cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 
 for i in range(len(frame_array)):
 	out.write(frame_array[i])
 
 out.release()
-print('success!')
+
 cv2.destroyAllWindows()
