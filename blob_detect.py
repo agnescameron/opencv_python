@@ -20,6 +20,7 @@ while True:
 
 os.remove('./temp/video.h264')
 os.remove('./temp/video.mp4')
+os.remove('./temp/*.avi')
 
 #make output path with recording timestamp
 timestamp = round(time.time())
@@ -127,7 +128,7 @@ for i in range(frame_count-4):
 		print('writing video out, wait a sec...')
 
 		#write out clip in style 1
-		out_1 = cv2.VideoWriter(os.path.join(path, 'video_1_' + str(clip_count) 
+		out_1 = cv2.VideoWriter(os.path.join('./temp/', 'video_1_' + str(clip_count) 
 			+ '.avi'),cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 
 		for j in range(len(frame_array_1)):
@@ -136,7 +137,7 @@ for i in range(frame_count-4):
 		out_1.release()
 
 		# write out clip in style 2
-		out_2 = cv2.VideoWriter(os.path.join(path, 'video_2_' + str(clip_count) 
+		out_2 = cv2.VideoWriter(os.path.join('./temp/', 'video_2_' + str(clip_count) 
 			+ '.avi'),cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 
 		for j in range(len(frame_array_2)):
@@ -150,7 +151,7 @@ for i in range(frame_count-4):
 cap.release()
 
 #write out remaining videos
-out_1 = cv2.VideoWriter(os.path.join(path, 'video_1_' + str(clip_count) 
+out_1 = cv2.VideoWriter(os.path.join('./temp/', 'video_1_' + str(clip_count) 
 	+ '.avi'),cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 
 for j in range(len(frame_array_1)):
@@ -158,7 +159,7 @@ for j in range(len(frame_array_1)):
 
 out_1.release()
 
-out_2 = cv2.VideoWriter(os.path.join(path, 'video_2_' + str(clip_count) 
+out_2 = cv2.VideoWriter(os.path.join('./temp/', 'video_2_' + str(clip_count) 
 	+ '.avi'),cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 
 for j in range(len(frame_array_2)):
@@ -166,20 +167,4 @@ for j in range(len(frame_array_2)):
 
 out_2.release()
 
-# print('writing video 1...')
-# out_1 = cv2.VideoWriter(os.path.join(path, 'video_1.avi'), cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
-
-# for i in range(len(frame_array_1)):
-# 	out_1.write(frame_array_1[i])
-
-# out_1.release()
-
-# print('video 1 written, writing video 2...')
-# out_2 = cv2.VideoWriter(os.path.join(path, 'video_2.avi'), cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
-
-# for i in range(len(frame_array_2)):
-# 	out_2.write(frame_array_2[i])
-
-# out_2.release()
-# print('success!')
 cv2.destroyAllWindows()
