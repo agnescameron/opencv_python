@@ -7,9 +7,13 @@ import RPi.GPIO as GPIO
 import time
 import os
 from glob import glob
+import board
+import neopixel
+
 
 camera = picamera.PiCamera()
 camera.resolution = (640, 480)
+camera.framerate = 10
 GPIO.setmode(GPIO.BCM)
 
 #setup LEDs
@@ -102,6 +106,10 @@ def record_and_write():
 		if i%50 == 0:
 			print("frame", i, "of", frame_count)
 			colour = [random.randint(100, 255), random.randint(100, 255), random.randint(100, 255)]
+
+		GPIO.output(red_led, GPIO.HIGH)
+		time.sleep(0.2)
+		GPIO.output(red_led, GPIO.LOW)
 
 		ret, frame = cap.read()
 		mask_raw = fgbg.apply(frame)
