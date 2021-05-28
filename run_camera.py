@@ -10,11 +10,11 @@ from glob import glob
 import board
 import neopixel
 
-
 camera = picamera.PiCamera()
 camera.resolution = (640, 480)
 camera.framerate = 10
 GPIO.setmode(GPIO.BCM)
+pixels = neopixel.NeoPixel(board.D18, 12, brightness=0.9)
 
 #setup LEDs
 red_led = 13
@@ -58,6 +58,8 @@ def record_and_write():
 	os.mkdir(output_path)
 
 	print("started recording")
+	pixels.fill((255, 255, 255))
+	pixels.show()
 	camera.start_recording('./temp/video.h264')
 	camera.wait_recording(1)
 
@@ -67,6 +69,8 @@ def record_and_write():
 	        break
 
 	print("finished filming")
+	pixels.fill((0, 0, 0))
+	pixels.show()
 
 	GPIO.output(yellow_led, GPIO.HIGH)
 	GPIO.output(red_led, GPIO.LOW)
