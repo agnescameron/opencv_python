@@ -1,0 +1,12 @@
+[Unit]
+Description=Running Shadow Camera
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=sudo -E /usr/bin/python3 run_camera.py > /home/pi/camera.log 2>&1
+WorkingDirectory=/home/pi/opencv_python
+User=pi
+
+[Install]
+WantedBy=multi-user.target

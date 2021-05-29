@@ -236,11 +236,16 @@ def record_and_write():
 if __name__ == "__main__":
 	run_count = 0
 	while True:
-		time.sleep(0.1)
 		if GPIO.input(button_in) == GPIO.HIGH:
-			record_and_write()
-			GPIO.output(green_led, GPIO.LOW)
-			run_count = run_count + 1
-			print("ready to record, run count is", run_count)
-
+			try:
+				record_and_write()
+				GPIO.output(green_led, GPIO.LOW)
+				run_count = run_count + 1
+				print("ready to record, run count is", run_count)
+			except Exception as e:
+				print("hit exception, cleaning up")
+				GPIO.cleanup()
+				pixels.fill((0, 0, 0))
+				pixels.show()
+				sys.exit(1)
 	GPIO.cleanup()
