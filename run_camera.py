@@ -163,7 +163,6 @@ def record_and_write():
 		frame_array_2.append(frame_2)
 
 		if i%100 == 0 and i != 0:
-			clip_count = clip_count + 1
 			print('writing video out, wait a sec...')
 
 			#write out clip in style 1
@@ -192,6 +191,7 @@ def record_and_write():
 
 			frame_array_1 = []
 			frame_array_2 = []
+			clip_count = clip_count + 1
 
 	cap.release()
 
