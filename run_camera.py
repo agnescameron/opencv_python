@@ -79,6 +79,10 @@ def record_and_write():
 	command = "MP4Box -add ./temp/video.h264 ./temp/video.mp4"
 	subprocess.call([command], shell=True)
 
+	#copy the output video to the folder
+	command2 = "cp ./temp/video.mp4 ./output/video_orig.mp4"
+	subprocess.call([command2], shell=True)
+
 	print("written recording, now converting frames")
 
 	shadow_threshold = 0.5
