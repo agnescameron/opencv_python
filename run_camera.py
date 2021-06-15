@@ -6,6 +6,7 @@ import subprocess
 import RPi.GPIO as GPIO
 import time
 import os
+import sys
 from glob import glob
 import board
 import neopixel
@@ -14,7 +15,7 @@ camera = picamera.PiCamera()
 camera.resolution = (640, 480)
 camera.framerate = 10
 GPIO.setmode(GPIO.BCM)
-pixels = neopixel.NeoPixel(board.D18, 12, brightness=0.9)
+pixels = neopixel.NeoPixel(board.D18, 12, brightness=0.1)
 
 #setup LEDs
 red_led = 13
@@ -80,7 +81,7 @@ def record_and_write():
 	subprocess.call([command], shell=True)
 
 	#copy the output video to the folder
-	command2 = "cp ./temp/video.mp4 ./output/video_orig.mp4"
+	command2 = "MP4Box -add ./temp/video.h264 " + output_path + "/orig_video.mp4"
 	subprocess.call([command2], shell=True)
 
 	print("written recording, now converting frames")
@@ -116,7 +117,7 @@ def record_and_write():
 			colour = [random.randint(100, 255), random.randint(100, 255), random.randint(100, 255)]
 
 		GPIO.output(red_led, GPIO.HIGH)
-		time.sleep(0.2)
+		time.sleep(0.1)
 		GPIO.output(red_led, GPIO.LOW)
 
 		ret, frame = cap.read()
@@ -247,6 +248,7 @@ if __name__ == "__main__":
 				run_count = run_count + 1
 				print("ready to record, run count is", run_count)
 			except Exception as e:
+				print(e)
 				print("hit exception, cleaning up")
 				GPIO.cleanup()
 				pixels.fill((0, 0, 0))

@@ -2,7 +2,7 @@ import board
 import neopixel
 import time
 
-pixels = neopixel.NeoPixel(board.D18, 30, brightness=0.9)
+pixels = neopixel.NeoPixel(board.D18, 30, brightness=0.1)
 
 pixels.fill((255, 255, 255))
 pixels.show()
