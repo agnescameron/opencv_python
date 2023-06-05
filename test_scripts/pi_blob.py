@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import os
-import traceback
 import random
 import picamera
 

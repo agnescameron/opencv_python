@@ -7,7 +7,7 @@ import os
 # img = cv2.imread("test_image.png")
 fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=True)
 print(fgbg.getShadowThreshold())
-cap = cv2.VideoCapture('../test_footage/samples/cherry-blossom-trim.mov')
+cap = cv2.VideoCapture('./living_room.mp4')
 
 frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -18,7 +18,6 @@ frame_height = int(cap.get(4))
 print(frame_width, frame_height)
 
 for i in range(frame_count-4):
-	print('frame %d of %d', (i, frame_count))
 	ret, frame = cap.read()
 	mask = fgbg.apply(frame)
 	frame_inv = cv2.bitwise_not(frame)
@@ -34,7 +33,7 @@ for i in range(frame_count-4):
 cap.release()
 
 print('writing...')
-out = cv2.VideoWriter('../test_footage/opencv/check.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
+out = cv2.VideoWriter('./check.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_width, frame_height))
 for i in range(len(frame_array)):
 	out.write(frame_array[i])
 
